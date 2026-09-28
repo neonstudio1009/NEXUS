@@ -140,7 +140,7 @@ function load(){try{S=JSON.parse(localStorage.getItem(K))}catch(e){}
 if(!S){S={chips:1500,own:{},deck:[],stage:1,pity:0,pulls:0};const p=CARDS.filter(c=>c.r==0).sort(()=>Math.random()-.5);
 [...p.filter(c=>c.t=="atk"||c.t=="block"||c.t=="multi").slice(0,6),...p.filter(c=>!["atk","block","multi"].includes(c.t)).slice(0,6)].forEach(c=>S.own[c.id]=1);
 S.deck=Object.keys(S.own).map(Number);save()}
-if(!S.lastCollect)S.lastCollect=Date.now()}
+if(!S.lastCollect){S.lastCollect=Date.now();save()}}
 const $=id=>document.getElementById(id),sleep=ms=>new Promise(r=>setTimeout(r,ms)),rnd=a=>a[Math.floor(Math.random()*a.length)];
 
 /* ---------- 導覽 ---------- */
