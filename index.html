@@ -50,6 +50,10 @@ nav button.on{color:var(--cy);text-shadow:0 0 8px var(--cy);box-shadow:inset 0 2
 .tabs{display:flex;gap:6px;overflow-x:auto;margin-bottom:10px}
 .tabs button{flex:0 0 auto;background:var(--pn);border:1px solid var(--ln);color:var(--dim);border-radius:16px;padding:5px 12px;font-size:13px}
 .tabs button.on{color:var(--cy);border-color:var(--cy)}
+.search{width:100%;background:var(--pn);border:1px solid var(--ln);color:var(--tx);border-radius:10px;padding:10px 14px;font-size:14px;margin-bottom:10px;outline:none;font-family:inherit}
+.search:focus{border-color:var(--cy);box-shadow:0 0 10px #00e5ff44}
+.search::placeholder{color:var(--dim)}
+.empty{color:var(--dim);text-align:center;grid-column:1/-1;padding:30px 0}
 .ov{position:fixed;inset:0;background:#02060cee;z-index:9;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;padding:16px;overflow-y:auto}
 .pulls{display:grid;grid-template-columns:repeat(5,1fr);gap:6px;width:100%;max-width:500px}
 .pulls .card{height:112px;animation:pop .5s both}.pulls .card .ar{font-size:22px;margin-top:12px}
@@ -118,6 +122,7 @@ main.sw>*:nth-child(2){animation-delay:.07s}main.sw>*:nth-child(3){animation-del
 <script>
 const E=[["量子","⚛️","#00e5ff"],["等離子","🌀","#ff3df2"],["奈米","🧫","#7cff6b"],["重力","🪐","#ffb020"],["暗物質","🌑","#8a5cff"]];
 const TY=[["atk","脈衝炮",6,"⚡"],["multi","連射陣列",3,"✦"],["pierce","穿甲彈",5,"🎯"],["block","能量護盾",5,"🛡️"],["heal","修復模組",4,"💊"],["draw","資料鏈路",0,"📡"],["energy","核心充能",0,"🔋"],["poison","病毒注入",3,"☣️"],["buff","基因增幅",0,"🧬"],["drain","汲能觸鬚",4,"🩸"]];
+const TYL={atk:"⚡ 攻擊",multi:"✦ 連擊",pierce:"🎯 穿甲",block:"🛡️ 護盾",heal:"💊 治療",draw:"📡 抽牌",energy:"🔋 充能",poison:"☣️ 中毒",buff:"🧬 增幅",drain:"🩸 汲取"};
 const TW=["初級","進階","精英","傳說","奇點"],M=[1,1.7,3.5,4.6,7.2],CO=[1,1,2,2,3],RN=["N","R","SR","SSR","UR"],RC=["#8fa3b8","#4da3ff","#b56bff","#ffb020","#ff3d6e"];
 const SP={draw:[1,2,2,3,3],energy:[1,2,2,3,3],buff:[1,1,2,3,4],poison:[3,5,8,12,18]},SC=[0,1,1,2,2];
 const CARDS=[];
@@ -216,12 +221,36 @@ function rGacha(){$("main").innerHTML=`<div class="pn" style="text-align:center"
 <div style="display:flex;gap:10px"><button class="btn" style="flex:1" onclick="pull(1)">單抽<br>◈ 100</button><button class="btn" style="flex:1" onclick="pull(10)">十連抽<br>◈ 900</button></div></div>`}
 
 /* ---------- 卡庫 ---------- */
-let cf=-1;
+let cf=-1,gm="e",sq="";
 function toggle(id){const i=S.deck.indexOf(id);if(i>=0)S.deck.splice(i,1);else if(S.deck.length<20)S.deck.push(id);else return alert("牌組已滿(20 張)");save();rColl()}
-function rColl(){const l=CARDS.filter(c=>cf<0||c.e==cf).sort((a,b)=>(!!S.own[b.id])-(!!S.own[a.id])||b.r-a.r||a.id-b.id);
+function setGM(g){gm=g;cf=-1;renderCollBody()}
+function setCF(v){cf=v;renderCollBody()}
+function onSearch(v){sq=v;renderCollBody()}
+function matchG(c){if(cf<0)return true;
+if(gm=="e")return c.e==cf;
+if(gm=="t")return c.t==cf;
+if(gm=="r")return c.r==cf;
+if(gm=="cost")return c.cost==cf;
+return true}
+function matchQ(c){if(!sq.trim())return true;const s=sq.trim().toLowerCase();
+return c.n.toLowerCase().includes(s)||dsc(c).toLowerCase().includes(s)||RN[c.r].toLowerCase().includes(s)||E[c.e][0].toLowerCase().includes(s)||TYL[c.t].toLowerCase().includes(s)}
+function rColl(){
 $("main").innerHTML=`<div class="pn" style="display:flex;justify-content:space-between"><span>收集 <b style="color:var(--cy)">${Object.keys(S.own).length}/250</b></span><span>牌組 <b style="color:var(--cy)">${S.deck.length}/20</b></span></div>
-<div class="tabs"><button class="${cf<0?"on":""}" onclick="cf=-1;rColl()">全部</button>${E.map((e,i)=>`<button class="${cf==i?"on":""}" onclick="cf=${i};rColl()">${e[1]} ${e[0]}</button>`).join("")}</div>
-<div class="grid">${l.map(c=>S.own[c.id]?`<div onclick="toggle(${c.id})">${cardH(c,S.deck.includes(c.id)?"in":"")}</div>`:cardH(c,"un")).join("")}</div>`}
+<input id="collSearch" class="search" placeholder="🔍 搜尋卡名或效果 (例如: 護盾、毒、穿甲)" value="${sq}" oninput="onSearch(this.value)">
+<div id="collBody"></div>`;
+renderCollBody()}
+function renderCollBody(){
+const l=CARDS.filter(c=>matchG(c)&&matchQ(c)).sort((a,b)=>(!!S.own[b.id])-(!!S.own[a.id])||b.r-a.r||a.id-b.id);
+const gmTabs=[["e","屬性"],["t","效果"],["r","稀有度"],["cost","耗費"]];
+let subTabs="";
+if(gm=="e")subTabs=E.map((e,i)=>`<button class="${cf==i?"on":""}" onclick="setCF(${i})">${e[1]} ${e[0]}</button>`).join("");
+else if(gm=="t")subTabs=TY.map(t=>t[0]).filter((v,i,a)=>a.indexOf(v)==i).map(k=>`<button class="${cf==k?"on":""}" onclick="setCF('${k}')">${TYL[k]}</button>`).join("");
+else if(gm=="r")subTabs=RN.map((r,i)=>`<button class="${cf==i?"on":""}" onclick="setCF(${i})" style="color:${cf==i?"var(--cy)":RC[i]}">${r}</button>`).join("");
+else if(gm=="cost"){const costs=[...new Set(CARDS.map(c=>c.cost))].sort((a,b)=>a-b);
+subTabs=costs.map(v=>`<button class="${cf==v?"on":""}" onclick="setCF(${v})">${v==0?"0":"◈ "+v}</button>`).join("")}
+$("collBody").innerHTML=`<div class="tabs">${gmTabs.map(([k,n])=>`<button class="${gm==k?"on":""}" onclick="setGM('${k}')">${n}</button>`).join("")}</div>
+<div class="tabs"><button class="${cf<0?"on":""}" onclick="setCF(-1)">全部</button>${subTabs}</div>
+<div class="grid">${l.length?l.map(c=>S.own[c.id]?`<div onclick="toggle(${c.id})">${cardH(c,S.deck.includes(c.id)?"in":"")}</div>`:cardH(c,"un")).join(""):'<p class="empty">沒有符合的卡牌</p>'}</div>`}
 
 document.addEventListener("pointerdown",e=>{const b=e.target.closest(".btn,nav button,.tabs button");if(!b||b.disabled)return;const r=b.getBoundingClientRect(),z=Math.max(r.width,r.height)*2,d=document.createElement("span");d.className="rp";d.style.cssText=`width:${z}px;height:${z}px;left:${e.clientX-r.left-z/2}px;top:${e.clientY-r.top-z/2}px`;b.appendChild(d);setTimeout(()=>d.remove(),550)});
 load();render();
