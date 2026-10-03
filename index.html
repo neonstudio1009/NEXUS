@@ -112,6 +112,7 @@ main.sw>*:nth-child(2){animation-delay:.07s}main.sw>*:nth-child(3){animation-del
 .fd{color:var(--rd)}.fh{color:var(--gr)}
 @keyframes fu{to{transform:translateY(-34px);opacity:0}}
 .tag{animation:fi .3s both}
+.deck-panel{margin-bottom:10px}.deck-current{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}.deck-current .card{height:108px}.deck-current .card .ar{font-size:22px;margin:9px 0 2px}.deck-current .card .nm{font-size:9px}.deck-current .card .ds{display:none}.deck-owned{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}.deck-owned .card{height:128px}.deck-switching{animation:deckSwitch .35s ease both}@keyframes deckSwitch{from{opacity:.2;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}.deck-switching .card{animation:deckCard .32s ease both}@keyframes deckCard{from{opacity:0;transform:scale(.9)}to{opacity:1;transform:scale(1)}}
 @media(prefers-reduced-motion:reduce){*,*:before,*:after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}}
 </style>
 </head>
@@ -152,11 +153,10 @@ function fx(){const P=B.P,X=B.X,pv=B.pv||{p:P.hp,x:X.hp};
 [["xp",pv.x,X.hp],["pp",pv.p,P.hp]].forEach(([id,a,b])=>{if(a!=b){const el=$(id);el.classList.add(b<a?"hurt":"heal");const f=document.createElement("div");f.className="fl "+(b<a?"fd":"fh");f.textContent=(b<a?"-":"+")+Math.abs(a-b);el.appendChild(f)}});
 B.pv={p:P.hp,x:X.hp};B.deal=false}
 function render(){updChips();
-if(navTab!=tab){navTab=tab;$("nav").innerHTML=[["battle","⚔️ 戰鬥"],["gacha","🎴 抽卡"],["coll","📚 卡庫"],["reactor","⚡ 反應爐"]].map(([k,n])=>`<button class="${tab==k?"on":""}" onclick="go('${k}')">${n}</button>`).join("")}
+if(navTab!=tab){navTab=tab;$("nav").innerHTML=[["battle","⚔️ 戰鬥"],["gacha","🎴 抽卡"],["coll","📚 卡庫"],["deck","🃏 牌組"],["reactor","⚡ 反應爐"]].map(([k,n])=>`<button class="${tab==k?"on":""}" onclick="go('${k}')">${n}</button>`).join("")}
 if(tab=="battle")B&&!B.over?rBattle():rHome();
 else if(tab=="gacha")rGacha();
-else if(tab=="coll")rColl();
-else rReactor()}
+else if(tab=="coll")rColl();else if(tab=="deck")rDeck();else rReactor()}
 
 /* ---------- 戰鬥 ---------- */
 function rHome(){$("main").innerHTML=`<div class="pn" style="text-align:center"><h3 class="o">SECTOR ${S.stage}</h3><p style="color:var(--dim);margin:4px 0 12px">${S.stage%5==0?"⚠ 首領關卡":"入侵者偵測中"}</p><p>出戰牌組:<b style="color:var(--cy)">${S.deck.length}</b> / 20 張</p><button class="btn" onclick="startBattle()">▶ 進入戰鬥</button></div>
@@ -287,7 +287,7 @@ ${capped?'<p style="color:var(--rd);font-size:12px;margin:0 0 10px">已達累積
 提升 SECTOR 可以讓反應爐產出更快,記得定期回來收取,別讓反應爐閒置浪費產能。
 </p>
 </div>`}
-
+let deckSq="";function onDeckSearch(v){deckSq=v;renderDeckBody()}function deckMatch(c){if(!deckSq.trim())return true;const s=deckSq.trim().toLowerCase();return c.n.toLowerCase().includes(s)||dsc(c).toLowerCase().includes(s)||RN[c.r].toLowerCase().includes(s)||E[c.e][0].toLowerCase().includes(s)||TYL[c.t].toLowerCase().includes(s)}function deckToggle(id){const i=S.deck.indexOf(id);if(i>=0)S.deck.splice(i,1);else if(S.deck.length<20)S.deck.push(id);else return alert("牌組已滿(20 張)");save();renderDeckBody()}function rDeck(){$("main").innerHTML=`<div class="pn"><h3>🃏 牌組配置</h3><p style="font-size:12px;color:var(--dim);margin:0">點擊下方已收集的卡牌加入牌組；點擊目前牌組的卡牌即可移除。</p></div><input id="deckSearch" class="search" placeholder="🔍 搜尋已收集卡牌 (卡名、效果、屬性、稀有度)" value="${deckSq}" oninput="onDeckSearch(this.value)"><div id="deckBody"></div>`;renderDeckBody()}function renderDeckBody(){const active=S.deck.map(id=>CARDS.find(c=>c.id==id)).filter(Boolean),owned=CARDS.filter(c=>S.own[c.id]&&deckMatch(c)).sort((a,b)=>S.deck.includes(a.id)-S.deck.includes(b.id)||b.r-a.r||a.id-b.id),avg=active.length?(active.reduce((sum,c)=>sum+c.cost,0)/active.length).toFixed(1):"0.0";$("deckBody").innerHTML=`<div class="pn"><div style="display:flex;justify-content:space-between;align-items:center"><b>當前牌組 <span style="color:var(--cy)">${active.length}/20</span></b><span class="tag" style="color:var(--cy)">平均耗能 🔋 ${avg}</span></div><div class="deck-current ${active.length?"deck-switching":""}" style="margin-top:8px">${active.length?active.map(c=>`<div onclick="deckToggle(${c.id})">${cardH(c)}</div>`).join(""):'<p class="empty">尚未加入卡牌</p>'}</div></div><div class="pn"><div style="display:flex;justify-content:space-between"><b>可用卡牌</b><span style="color:var(--dim);font-size:12px">${owned.length} 張</span></div><div class="deck-owned" style="margin-top:8px">${owned.length?owned.map(c=>`<div onclick="deckToggle(${c.id})">${cardH(c,S.deck.includes(c.id)?"no":"")}</div>`).join(""):'<p class="empty">沒有符合的卡牌</p>'}</div></div>`}
 document.addEventListener("pointerdown",e=>{const b=e.target.closest(".btn,nav button,.tabs button");if(!b||b.disabled)return;const r=b.getBoundingClientRect(),z=Math.max(r.width,r.height)*2,d=document.createElement("span");d.className="rp";d.style.cssText=`width:${z}px;height:${z}px;left:${e.clientX-r.left-z/2}px;top:${e.clientY-r.top-z/2}px`;b.appendChild(d);setTimeout(()=>d.remove(),550)});
 load();render();
 </script>
