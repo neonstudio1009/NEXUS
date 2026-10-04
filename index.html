@@ -113,6 +113,7 @@ main.sw>*:nth-child(2){animation-delay:.07s}main.sw>*:nth-child(3){animation-del
 @keyframes fu{to{transform:translateY(-34px);opacity:0}}
 .tag{animation:fi .3s both}
 .deck-panel{margin-bottom:10px}.deck-current{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}.deck-current .card{height:108px}.deck-current .card .ar{font-size:22px;margin:9px 0 2px}.deck-current .card .nm{font-size:9px}.deck-current .card .ds{display:none}.deck-owned{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}.deck-owned .card{height:128px}.deck-switching{animation:deckSwitch .35s ease both}@keyframes deckSwitch{from{opacity:.2;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}.deck-switching .card{animation:deckCard .32s ease both}@keyframes deckCard{from{opacity:0;transform:scale(.9)}to{opacity:1;transform:scale(1)}}
+.mission-head{display:flex;justify-content:space-between;align-items:center;gap:8px}.mission-card{border-left:3px solid var(--ln);transition:border-color .25s,box-shadow .25s}.mission-card.done{border-left-color:var(--gr);box-shadow:0 0 14px #7cff6b22}.mission-card.claimed{opacity:.58;filter:grayscale(.4)}.mission-row{display:flex;align-items:center;gap:10px}.mission-icon{width:38px;height:38px;border-radius:10px;background:#00e5ff16;border:1px solid var(--ln);display:flex;align-items:center;justify-content:center;font-size:21px;flex:0 0 auto}.mission-info{flex:1;min-width:0}.mission-title{font-size:14px;font-weight:700}.mission-desc{font-size:12px;color:var(--dim);margin-top:3px}.mission-progress{font-size:12px;color:var(--cy);white-space:nowrap}.mission-card .bar{margin:9px 0 8px;height:8px}.mission-card .btn{width:100%;padding:8px;font-size:13px}.mission-date{font-size:11px;color:var(--dim);text-align:right}
 @media(prefers-reduced-motion:reduce){*,*:before,*:after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}}
 </style>
 </head>
@@ -141,7 +142,7 @@ function load(){try{S=JSON.parse(localStorage.getItem(K))}catch(e){}
 if(!S){S={chips:1500,own:{},deck:[],stage:1,pity:0,pulls:0};const p=CARDS.filter(c=>c.r==0).sort(()=>Math.random()-.5);
 [...p.filter(c=>c.t=="atk"||c.t=="block"||c.t=="multi").slice(0,6),...p.filter(c=>!["atk","block","multi"].includes(c.t)).slice(0,6)].forEach(c=>S.own[c.id]=1);
 S.deck=Object.keys(S.own).map(Number);save()}
-if(!S.lastCollect){S.lastCollect=Date.now();save()}}
+if(!S.lastCollect){S.lastCollect=Date.now();save()}initMissions()}
 const $=id=>document.getElementById(id),sleep=ms=>new Promise(r=>setTimeout(r,ms)),rnd=a=>a[Math.floor(Math.random()*a.length)];
 
 /* ---------- 導覽 ---------- */
@@ -153,10 +154,10 @@ function fx(){const P=B.P,X=B.X,pv=B.pv||{p:P.hp,x:X.hp};
 [["xp",pv.x,X.hp],["pp",pv.p,P.hp]].forEach(([id,a,b])=>{if(a!=b){const el=$(id);el.classList.add(b<a?"hurt":"heal");const f=document.createElement("div");f.className="fl "+(b<a?"fd":"fh");f.textContent=(b<a?"-":"+")+Math.abs(a-b);el.appendChild(f)}});
 B.pv={p:P.hp,x:X.hp};B.deal=false}
 function render(){updChips();
-if(navTab!=tab){navTab=tab;$("nav").innerHTML=[["battle","⚔️ 戰鬥"],["gacha","🎴 抽卡"],["coll","📚 卡庫"],["deck","🃏 牌組"],["reactor","⚡ 反應爐"]].map(([k,n])=>`<button class="${tab==k?"on":""}" onclick="go('${k}')">${n}</button>`).join("")}
+if(navTab!=tab){navTab=tab;$("nav").innerHTML=[["battle","⚔️ 戰鬥"],["gacha","🎴 抽卡"],["coll","📚 卡庫"],["deck","🃏 牌組"],["mission","📋 任務"],["reactor","⚡ 反應爐"]].map(([k,n])=>`<button class="${tab==k?"on":""}" onclick="go('${k}')">${n}</button>`).join("")}
 if(tab=="battle")B&&!B.over?rBattle():rHome();
 else if(tab=="gacha")rGacha();
-else if(tab=="coll")rColl();else if(tab=="deck")rDeck();else rReactor()}
+else if(tab=="coll")rColl();else if(tab=="deck")rDeck();else if(tab=="mission")rMission();else rReactor()}
 
 /* ---------- 戰鬥 ---------- */
 function rHome(){$("main").innerHTML=`<div class="pn" style="text-align:center"><h3 class="o">SECTOR ${S.stage}</h3><p style="color:var(--dim);margin:4px 0 12px">${S.stage%5==0?"⚠ 首領關卡":"入侵者偵測中"}</p><p>出戰牌組:<b style="color:var(--cy)">${S.deck.length}</b> / 20 張</p><button class="btn" onclick="startBattle()">▶ 進入戰鬥</button></div>
@@ -169,7 +170,7 @@ const nm=rnd(["虛空","機械","暗網","量子","熔核","霜藍"])+rnd(["哨�
 const hp=Math.round((28+st*9)*(boss?Math.max(1.25,1.7-st*.04):1));
 B={P:{hp:80,max:80,bl:0,st:0,po:0,en:3},X:{n:(boss?"👑 BOSS·":"")+nm,hp,max:hp,bl:0,st:0,po:0,en:st>=4?4:3},
 draw:[...S.deck].sort(()=>Math.random()-.5).map(i=>CARDS[i]),disc:[],hand:[],pool,log:"戰鬥開始!",over:false};
-startTurn()}
+missionBattleStart();startTurn()}
 function drawC(n){while(n--){if(!B.draw.length){B.draw=B.disc.sort(()=>Math.random()-.5);B.disc=[]}if(!B.draw.length)break;if(B.hand.length<10)B.hand.push(B.draw.pop())}}
 function startTurn(){const P=B.P;P.bl=0;P.en=3;
 if(P.po){P.hp-=P.po;P.po--;if(P.hp<=0)return end(false)}
@@ -185,13 +186,13 @@ case"atk":hit(t,V+b);break;case"multi":for(let i=0;i<c.h;i++)hit(t,V+b);break;ca
 case"block":s.bl+=V;break;case"heal":s.hp=Math.min(s.max,s.hp+V);break;case"draw":drawC(c.v);break;case"energy":s.en+=c.v;break;
 case"poison":t.po+=V;break;case"buff":s.st+=c.v;break;case"drain":{const d=hit(t,V+b);s.hp=Math.min(s.max,s.hp+d)}}}
 function play(i){if(busy||B.over)return;const c=B.hand[i];if(c.cost<=B.P.en&&!c._d){busy=true;const el=document.querySelectorAll(".hand>div")[i];if(el)el.classList.add("used");return setTimeout(()=>{busy=false;c._d=1;play(B.hand.indexOf(c));c._d=0},230)}if(c.cost>B.P.en){fl=i;render();fl=-1;return}
-B.P.en-=c.cost;B.hand.splice(i,1);B.disc.push(c);apply(c,B.P,B.X);B.log=`你使用了【${c.n}】`;
+B.P.en-=c.cost;B.hand.splice(i,1);B.disc.push(c);apply(c,B.P,B.X);missionCardPlayed(c);missionPoisonCheck(B.X);B.log=`你使用了【${c.n}】`;
 if(B.X.hp<=0)return end(true);render()}
 async function endTurn(){if(busy||B.over)return;busy=true;const X=B.X,P=B.P;B.disc.push(...B.hand);B.hand=[];X.bl=0;
 if(X.po){X.hp-=X.po;X.po--;B.log=`敵人受到毒素傷害`;render();await sleep(600);if(X.hp<=0)return end(true)}
 for(const c of B.plan){B.log=`敵方使用【${c.n}】`;apply(c,X,P);render();await sleep(750);if(P.hp<=0)return end(false)}
 startTurn()}
-function end(w){B.over=true;busy=false;let m;if(w){const g=100+S.stage*30;S.chips+=g;S.stage++;m=`<h2 class="o" style="color:var(--gr)">VICTORY</h2><p>獲得 ◈ ${g} 晶片<br>前往 SECTOR ${S.stage}</p>`}else{S.chips+=20;m=`<h2 class="o" style="color:var(--rd)">DEFEATED</h2><p>獲得安慰晶片 ◈ 20<br>去抽卡強化牌組再來吧</p>`}
+function end(w){B.over=true;busy=false;if(w)missionBattleWin();let m;if(w){const g=100+S.stage*30;S.chips+=g;S.stage++;m=`<h2 class="o" style="color:var(--gr)">VICTORY</h2><p>獲得 ◈ ${g} 晶片<br>前往 SECTOR ${S.stage}</p>`}else{S.chips+=20;m=`<h2 class="o" style="color:var(--rd)">DEFEATED</h2><p>獲得安慰晶片 ◈ 20<br>去抽卡強化牌組再來吧</p>`}
 save();updChips();const o=document.createElement("div");o.className="ov";o.style.textAlign="center";o.innerHTML=m+`<button class="btn">確定</button>`;o.querySelector("button").onclick=()=>{o.remove();B=null;render()};document.body.appendChild(o)}
 const intent=()=>{let a=0,b=0,p=0;B.plan.forEach(c=>{const v=ev(c,B.X),k=sb(B.X);if(["atk","pierce","drain"].includes(c.t))a+=v+k;if(c.t=="multi")a+=(v+k)*c.h;if(c.t=="block")b+=v;if(c.t=="poison")p+=v});return`${a?`<span class="tag">⚔️ ${a}</span>`:""}${b?`<span class="tag">🛡️ ${b}</span>`:""}${p?`<span class="tag">☣️ ${p}</span>`:""}${B.plan.length?"":"<span class='tag'>待機</span>"}`};
 function rBattle(){const P=B.P,X=B.X;const bar=(o,c)=>`<div class="bar"><i style="width:${Math.max(0,o.hp/o.max*100)}%;background:${c}"></i></div>`;
@@ -216,7 +217,7 @@ function roll(){const w=[50,30,14,5,1];let x=Math.random()*100,r=0;for(;r<4&&x>=
 function pull(n){const cost=n==1?100:900;if(S.chips<cost)return alert("晶片不足!去戰鬥賺取更多吧");S.chips-=cost;const rs=[];
 for(let i=0;i<n;i++){let r=roll();S.pity++;if(S.pity>=40&&r<3)r=Math.random()<.15?4:3;if(r>=3)S.pity=0;rs.push(r)}
 if(n==10&&!rs.some(r=>r>=2))rs[9]=2;
-const got=rs.map(r=>rnd(CARDS.filter(c=>c.r==r)));S.pulls+=n;const RF=[10,30,80,200,500];
+const got=rs.map(r=>rnd(CARDS.filter(c=>c.r==r)));S.pulls+=n;missionPull(n);const RF=[10,30,80,200,500];
 const items=got.map(c=>{const nw=!S.own[c.id];if(nw){S.own[c.id]=1}else S.chips+=RF[c.r];return{c,nw}});save();
 const o=document.createElement("div");o.className="ov";o.innerHTML=`<div class="spin"></div><div class="o" style="color:var(--cy)">解析量子訊號…</div>`;document.body.appendChild(o);
 setTimeout(()=>{const top=Math.max(...got.map(c=>c.r));o.style.setProperty("--rc",RC[top]);o.className="ov flash";o.innerHTML=`<h3 class="o" style="color:${RC[top]}">獲得 ${RN[top]} 級卡牌!</h3><div class="pulls">${items.map(({c,nw},i)=>`<div style="position:relative;animation-delay:${i*.12}s" class="pw">${cardH(c,"","animation-delay:"+i*.12+"s")}${nw?'<span class="new">NEW</span>':`<span class="new" style="color:var(--dim)">+◈${RF[c.r]}</span>`}</div>`).join("")}</div><button class="btn">收下</button>`;
@@ -288,6 +289,256 @@ ${capped?'<p style="color:var(--rd);font-size:12px;margin:0 0 10px">已達累積
 </p>
 </div>`}
 let deckSq="";function onDeckSearch(v){deckSq=v;renderDeckBody()}function deckMatch(c){if(!deckSq.trim())return true;const s=deckSq.trim().toLowerCase();return c.n.toLowerCase().includes(s)||dsc(c).toLowerCase().includes(s)||RN[c.r].toLowerCase().includes(s)||E[c.e][0].toLowerCase().includes(s)||TYL[c.t].toLowerCase().includes(s)}function deckToggle(id){const i=S.deck.indexOf(id);if(i>=0)S.deck.splice(i,1);else if(S.deck.length<20)S.deck.push(id);else return alert("牌組已滿(20 張)");save();renderDeckBody()}function rDeck(){$("main").innerHTML=`<div class="pn"><h3>🃏 牌組配置</h3><p style="font-size:12px;color:var(--dim);margin:0">點擊下方已收集的卡牌加入牌組；點擊目前牌組的卡牌即可移除。</p></div><input id="deckSearch" class="search" placeholder="🔍 搜尋已收集卡牌 (卡名、效果、屬性、稀有度)" value="${deckSq}" oninput="onDeckSearch(this.value)"><div id="deckBody"></div>`;renderDeckBody()}function renderDeckBody(){const active=S.deck.map(id=>CARDS.find(c=>c.id==id)).filter(Boolean),owned=CARDS.filter(c=>S.own[c.id]&&deckMatch(c)).sort((a,b)=>S.deck.includes(a.id)-S.deck.includes(b.id)||b.r-a.r||a.id-b.id),avg=active.length?(active.reduce((sum,c)=>sum+c.cost,0)/active.length).toFixed(1):"0.0";$("deckBody").innerHTML=`<div class="pn"><div style="display:flex;justify-content:space-between;align-items:center"><b>當前牌組 <span style="color:var(--cy)">${active.length}/20</span></b><span class="tag" style="color:var(--cy)">平均耗能 🔋 ${avg}</span></div><div class="deck-current ${active.length?"deck-switching":""}" style="margin-top:8px">${active.length?active.map(c=>`<div onclick="deckToggle(${c.id})">${cardH(c)}</div>`).join(""):'<p class="empty">尚未加入卡牌</p>'}</div></div><div class="pn"><div style="display:flex;justify-content:space-between"><b>可用卡牌</b><span style="color:var(--dim);font-size:12px">${owned.length} 張</span></div><div class="deck-owned" style="margin-top:8px">${owned.length?owned.map(c=>`<div onclick="deckToggle(${c.id})">${cardH(c,S.deck.includes(c.id)?"no":"")}</div>`).join(""):'<p class="empty">沒有符合的卡牌</p>'}</div></div>`}
+/* ---------- 每日量子任務 ---------- */
+const MQ=[
+  {id:"atk",icon:"⚡",name:"火力校準",desc:"使用攻擊卡",target:10,reward:60},
+  {id:"block",icon:"🛡️",name:"防線展開",desc:"使用護盾卡",target:8,reward:55},
+  {id:"heal",icon:"💊",name:"維修協議",desc:"使用治療卡",target:5,reward:50},
+  {id:"poison",icon:"☣️",name:"病毒擴散",desc:"施加毒素層數",target:12,reward:70},
+  {id:"win",icon:"🏆",name:"區域清掃",desc:"贏得戰鬥",target:2,reward:100},
+  {id:"element",icon:"🌈",name:"光譜協作",desc:"單場使用三種屬性",target:1,reward:80},
+  {id:"toxin",icon:"🧪",name:"致命濃度",desc:"讓敵人累積 8 層毒素",target:1,reward:90},
+  {id:"draw",icon:"📡",name:"資料採樣",desc:"使用抽牌卡",target:6,reward:55},
+  {id:"energy",icon:"🔋",name:"核心增壓",desc:"使用充能卡",target:6,reward:55},
+  {id:"lowcost",icon:"🃏",name:"精密配置",desc:"以平均耗能低於 1.5 的牌組獲勝",target:1,reward:110},
+  {id:"pull",icon:"🎴",name:"訊號解析",desc:"進行抽卡",target:5,reward:65}
+];
+
+function missionDate(){
+  const d=new Date();
+  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`;
+}
+
+function missionSeed(str){
+  let h=2166136261;
+  for(let i=0;i<str.length;i++){
+    h^=str.charCodeAt(i);
+    h=Math.imul(h,16777619);
+  }
+  return h>>>0;
+}
+
+function makeDailyMissions(date){
+  let seed=missionSeed(date);
+  const pool=[...MQ];
+  const list=[];
+
+  for(let i=0;i<3;i++){
+    seed=(seed*1664525+1013904223)>>>0;
+    const index=seed%pool.length;
+    const base=pool.splice(index,1)[0];
+
+    const m={...base,progress:0,claimed:false};
+
+    if(["atk","block"].includes(m.id)){
+      m.target=8+(seed%7);
+    }
+
+    if(["heal","draw","energy"].includes(m.id)){
+      m.target=4+(seed%5);
+    }
+
+    if(m.id==="poison"){
+      m.target=8+(seed%9);
+    }
+
+    if(m.id==="pull"){
+      m.target=3+(seed%4);
+    }
+
+    m.reward=Math.round(m.reward+(m.target-1)*4);
+    list.push(m);
+  }
+
+  return list;
+}
+
+function initMissions(){
+  const today=missionDate();
+
+  if(!S.missions||S.missions.date!==today){
+    S.missions={
+      date:today,
+      list:makeDailyMissions(today),
+      battle:{elements:[],lowcost:false,toxin:false}
+    };
+    save();
+  }
+
+  if(!S.missions.battle){
+    S.missions.battle={elements:[],lowcost:false,toxin:false};
+  }
+}
+
+function missionAdd(id,n=1){
+  initMissions();
+
+  S.missions.list.forEach(m=>{
+    if(m.id===id&&!m.claimed){
+      m.progress=Math.min(m.target,m.progress+n);
+    }
+  });
+
+  save();
+
+  if(tab==="mission"){
+    renderMissionBody();
+  }
+}
+
+function missionBattleStart(){
+  initMissions();
+
+  S.missions.battle={
+    elements:[],
+    toxin:false,
+    lowcost:false
+  };
+}
+
+function missionCardPlayed(c){
+  if(!S.missions)return;
+
+  const typeMap={
+    atk:"atk",
+    block:"block",
+    heal:"heal",
+    draw:"draw",
+    energy:"energy"
+  };
+
+  if(typeMap[c.t]){
+    missionAdd(typeMap[c.t],1);
+  }
+
+  if(c.t==="poison"){
+    missionAdd("poison",c.v);
+  }
+
+  const battle=S.missions.battle;
+
+  if(!battle.elements.includes(c.e)){
+    battle.elements.push(c.e);
+
+    if(battle.elements.length>=3){
+      missionAdd("element",1);
+    }
+  }
+}
+
+function missionPoisonCheck(target){
+  if(!S.missions||!target)return;
+
+  const battle=S.missions.battle;
+
+  if(!battle.toxin&&target.po>=8){
+    battle.toxin=true;
+    missionAdd("toxin",1);
+  }
+}
+
+function missionBattleWin(){
+  missionAdd("win",1);
+
+  const avg=S.deck.length
+    ? S.deck.reduce((sum,id)=>sum+CARDS[id].cost,0)/S.deck.length
+    : 999;
+
+  if(avg<1.5){
+    missionAdd("lowcost",1);
+  }
+
+  if(S.missions){
+    S.missions.battle={elements:[],lowcost:false,toxin:false};
+    save();
+  }
+}
+
+function missionPull(n){
+  missionAdd("pull",n);
+}
+
+function claimMission(i){
+  initMissions();
+
+  const m=S.missions.list[i];
+
+  if(!m||m.claimed||m.progress<m.target){
+    return;
+  }
+
+  m.claimed=true;
+  S.chips+=m.reward;
+
+  save();
+  updChips();
+  renderMissionBody();
+}
+
+function rMission(){
+  initMissions();
+
+  $("main").innerHTML=`
+    <div class="pn mission-head">
+      <div>
+        <h3 class="o">DAILY QUANTUM TASKS</h3>
+        <p style="font-size:12px;color:var(--dim);margin:0">
+          完成任務並收取晶片，明天將重新分配任務。
+        </p>
+      </div>
+      <div class="mission-date">${S.missions.date}</div>
+    </div>
+    <div id="missionBody"></div>
+  `;
+
+  renderMissionBody();
+}
+
+function renderMissionBody(){
+  initMissions();
+
+  const list=S.missions.list;
+  const done=list.filter(m=>m.claimed).length;
+  const totalReward=list.reduce((sum,m)=>sum+(m.claimed?m.reward:0),0);
+
+  $("missionBody").innerHTML=`
+    <div class="pn">
+      <div style="display:flex;justify-content:space-between;align-items:center">
+        <span>今日進度 <b style="color:var(--cy)">${done}/3</b></span>
+        <span class="tag" style="color:var(--gr)">已收取 ◈ ${totalReward}</span>
+      </div>
+    </div>
+    ${list.map((m,i)=>{
+      const ratio=Math.min(100,m.progress/m.target*100);
+      const ready=m.progress>=m.target&&!m.claimed;
+
+      return `
+        <div class="pn mission-card ${m.progress>=m.target?"done":""} ${m.claimed?"claimed":""}">
+          <div class="mission-row">
+            <div class="mission-icon">${m.icon}</div>
+            <div class="mission-info">
+              <div class="mission-title">${m.name}</div>
+              <div class="mission-desc">${m.desc}</div>
+            </div>
+            <div class="mission-progress">${m.progress}/${m.target}</div>
+          </div>
+
+          <div class="bar">
+            <i style="width:${ratio}%;background:${m.claimed?"var(--dim)":m.progress>=m.target?"var(--gr)":"var(--cy)"}"></i>
+          </div>
+
+          ${
+            m.claimed
+              ? `<button class="btn" disabled>✓ 已收取 ◈ ${m.reward}</button>`
+              : ready
+                ? `<button class="btn" onclick="claimMission(${i})">收取獎勵 ◈ ${m.reward}</button>`
+                : `<button class="btn" disabled>任務進行中 ◈ ${m.reward}</button>`
+          }
+        </div>
+      `;
+    }).join("")}
+  `;
+}
 document.addEventListener("pointerdown",e=>{const b=e.target.closest(".btn,nav button,.tabs button");if(!b||b.disabled)return;const r=b.getBoundingClientRect(),z=Math.max(r.width,r.height)*2,d=document.createElement("span");d.className="rp";d.style.cssText=`width:${z}px;height:${z}px;left:${e.clientX-r.left-z/2}px;top:${e.clientY-r.top-z/2}px`;b.appendChild(d);setTimeout(()=>d.remove(),550)});
 load();render();
 </script>
