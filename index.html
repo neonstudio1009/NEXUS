@@ -161,7 +161,7 @@ else if(tab=="coll")rColl();else if(tab=="deck")rDeck();else if(tab=="mission")r
 
 /* ---------- 戰鬥 ---------- */
 function rHome(){$("main").innerHTML=`<div class="pn" style="text-align:center"><h3 class="o">SECTOR ${S.stage}</h3><p style="color:var(--dim);margin:4px 0 12px">${S.stage%5==0?"⚠ 首領關卡":"入侵者偵測中"}</p><p>出戰牌組:<b style="color:var(--cy)">${S.deck.length}</b> / 20 張</p><button class="btn" onclick="startBattle()">▶ 進入戰鬥</button></div>
-<div class="pn"><h3>玩法說明</h3><p style="font-size:13px;line-height:1.7;color:var(--dim);margin:0">每回合獲得 3 點能量並抽至 5 張牌。點擊手牌出牌,能量不足無法使用。結束回合後敵人會依「意圖」行動。勝利可獲得晶片,用於抽卡。到「卡庫」點卡牌可調整出戰牌組(最多 20 張,至少 5 張)。高稀有度卡牌現在每點能量的效果更強,UR 也只需 3 點能量即可打出。</p></div>
+<div class="pn"><h3>玩法說明</h3><p style="font-size:13px;line-height:1.7;color:var(--dim);margin:0">每回合獲得 3 點能量並抽至 5 張牌。點擊手牌出牌,能量不足無法使用。結束回合後敵人會依「意圖」行動。勝利可獲得晶片,用於抽卡。到「牌組」點卡牌可調整出戰牌組(最多 20 張,至少 5 張)。高稀有度卡牌現在每點能量的效果更強,UR 也只需 3 點能量即可打出。</p></div>
 <div class="pn"><span class="tag">已收集 ${Object.keys(S.own).length}/250</span><span class="tag">總抽數 ${S.pulls}</span><span class="tag">最高 SECTOR ${S.stage}</span></div>`}
 function startBattle(){if(S.deck.length<5)return alert("牌組至少需要 5 張牌!");pageIn();
 const st=S.stage,boss=st%5==0,mr=Math.min(4,Math.floor((st+2)/5));
@@ -242,7 +242,7 @@ return true}
 function matchQ(c){if(!sq.trim())return true;const s=sq.trim().toLowerCase();
 return c.n.toLowerCase().includes(s)||dsc(c).toLowerCase().includes(s)||RN[c.r].toLowerCase().includes(s)||E[c.e][0].toLowerCase().includes(s)||TYL[c.t].toLowerCase().includes(s)}
 function rColl(){
-$("main").innerHTML=`<div class="pn" style="display:flex;justify-content:space-between"><span>收集 <b style="color:var(--cy)">${Object.keys(S.own).length}/250</b></span><span>牌組 <b style="color:var(--cy)">${S.deck.length}/20</b></span></div>
+$("main").innerHTML=`<div class="pn" style="display:flex;justify-content:space-between"><span>收集 <b style="color:var(--cy)">${Object.keys(S.own).length}/250</b></span><span class="tag">收藏庫</span></div>
 <input id="collSearch" class="search" placeholder="🔍 搜尋卡名或效果 (例如: 護盾、毒、穿甲)" value="${sq}" oninput="onSearch(this.value)">
 <div id="collBody"></div>`;
 renderCollBody()}
@@ -257,7 +257,7 @@ else if(gm=="cost"){const costs=[...new Set(CARDS.map(c=>c.cost))].sort((a,b)=>a
 subTabs=costs.map(v=>`<button class="${cf==v?"on":""}" onclick="setCF(${v})">${v==0?"0(免費)":"◈ "+v}</button>`).join("")}
 $("collBody").innerHTML=`<div class="tabs">${gmTabs.map(([k,n])=>`<button class="${gm==k?"on":""}" onclick="setGM('${k}')">${n}</button>`).join("")}</div>
 <div class="tabs"><button class="${cf<0?"on":""}" onclick="setCF(-1)">全部</button>${subTabs}</div>
-<div class="grid">${l.length?l.map(c=>S.own[c.id]?`<div onclick="toggle(${c.id})">${cardH(c,S.deck.includes(c.id)?"in":"")}</div>`:cardH(c,"un")).join(""):'<p class="empty">沒有符合的卡牌</p>'}</div>`}
+<div class="grid">${l.length?l.map(c=>S.own[c.id]?`<div>${cardH(c)}</div>`:cardH(c,"un")).join(""):'<p class="empty">沒有符合的卡牌</p>'}</div>`}
 
 /* ---------- 反應爐(離線收益) ---------- */
 const REACTOR_CAP_H=8;
