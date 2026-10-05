@@ -214,7 +214,7 @@ $("main").innerHTML=`<div class="bf">
 
 /* ---------- 抽卡 ---------- */
 function roll(){const w=[50,30,14,5,1];let x=Math.random()*100,r=0;for(;r<4&&x>=w[r];r++)x-=w[r];return r}
-function pull(n){const cost=n==1?100:900;if(S.chips<cost)return alert("晶片不足!去戰鬥賺取更多吧");S.chips-=cost;const rs=[];
+function pull(n){const cost=n==1?100:900;if(S.chips<cost)return alert("晶片不足!去戰鬥賺取更多吧 ");S.chips-=cost;const rs=[];
 for(let i=0;i<n;i++){let r=roll();S.pity++;if(S.pity>=40&&r<3)r=Math.random()<.15?4:3;if(r>=3)S.pity=0;rs.push(r)}
 if(n==10&&!rs.some(r=>r>=2))rs[9]=2;
 const got=rs.map(r=>rnd(CARDS.filter(c=>c.r==r)));S.pulls+=n;missionPull(n);const RF=[10,30,80,200,500];
