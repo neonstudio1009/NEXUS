@@ -19,8 +19,7 @@ header{display:flex;justify-content:space-between;align-items:center;padding:10p
 header b{color:var(--cy);text-shadow:0 0 10px var(--cy)}
 .chips{background:#00e5ff18;border:1px solid var(--cy);border-radius:20px;padding:3px 12px;font-size:14px}
 main{flex:1;overflow-y:auto;padding:12px}
-nav{display:flex;border-top:1px solid var(--ln);background:#050d18}
-nav button{flex:1;background:none;border:0;color:var(--dim);padding:12px 0;font-size:13px}
+nav{display:flex;flex:0 0 auto;gap:4px;overflow-x:auto;overflow-y:hidden;border-top:1px solid var(--ln);background:#050d18;padding:0 6px;scroll-snap-type:x proximity;-webkit-overflow-scrolling:touch;scrollbar-width:none}nav::-webkit-scrollbar{display:none}nav button{flex:0 0 88px;background:none;border:0;color:var(--dim);padding:12px 4px;font-size:13px;white-space:nowrap;scroll-snap-align:center}
 nav button.on{color:var(--cy);text-shadow:0 0 8px var(--cy);box-shadow:inset 0 2px var(--cy)}
 .btn{background:linear-gradient(135deg,#00e5ff33,#0066ff33);border:1px solid var(--cy);color:var(--tx);border-radius:10px;padding:12px 16px;font-size:15px;font-weight:700;box-shadow:0 0 14px #00e5ff44}
 .btn:active{transform:scale(.96)}.btn[disabled]{opacity:.4}
@@ -114,6 +113,7 @@ main.sw>*:nth-child(2){animation-delay:.07s}main.sw>*:nth-child(3){animation-del
 .tag{animation:fi .3s both}
 .deck-panel{margin-bottom:10px}.deck-current{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}.deck-current .card{height:108px}.deck-current .card .ar{font-size:22px;margin:9px 0 2px}.deck-current .card .nm{font-size:9px}.deck-current .card .ds{display:none}.deck-owned{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}.deck-owned .card{height:128px}.deck-switching{animation:deckSwitch .35s ease both}@keyframes deckSwitch{from{opacity:.2;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}.deck-switching .card{animation:deckCard .32s ease both}@keyframes deckCard{from{opacity:0;transform:scale(.9)}to{opacity:1;transform:scale(1)}}
 .mission-head{display:flex;justify-content:space-between;align-items:center;gap:8px}.mission-card{border-left:3px solid var(--ln);transition:border-color .25s,box-shadow .25s}.mission-card.done{border-left-color:var(--gr);box-shadow:0 0 14px #7cff6b22}.mission-card.claimed{opacity:.58;filter:grayscale(.4)}.mission-row{display:flex;align-items:center;gap:10px}.mission-icon{width:38px;height:38px;border-radius:10px;background:#00e5ff16;border:1px solid var(--ln);display:flex;align-items:center;justify-content:center;font-size:21px;flex:0 0 auto}.mission-info{flex:1;min-width:0}.mission-title{font-size:14px;font-weight:700}.mission-desc{font-size:12px;color:var(--dim);margin-top:3px}.mission-progress{font-size:12px;color:var(--cy);white-space:nowrap}.mission-card .bar{margin:9px 0 8px;height:8px}.mission-card .btn{width:100%;padding:8px;font-size:13px}.mission-date{font-size:11px;color:var(--dim);text-align:right}
+.up-core{width:60%;margin:0 auto 12px;text-align:center;padding:8px;border:1px solid var(--cy);border-radius:12px;background:#00e5ff14;box-shadow:0 0 14px #00e5ff44;color:var(--cy);font-size:13px}.up-fork{position:relative;height:18px;margin:0 16.66%;border:2px solid var(--cy);border-bottom:0;opacity:.7}.up-fork:before{content:"";position:absolute;left:50%;top:-12px;height:12px;border-left:2px solid var(--cy)}.up-fork:after{content:"";position:absolute;left:50%;top:0;height:100%;border-left:2px solid var(--cy)}.up-cols{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}.up-col{display:flex;flex-direction:column}.up-br{text-align:center;font-size:12px;color:var(--dim);margin:2px 0 6px}.up-node{background:var(--pn);border:1px solid var(--ln);border-radius:10px;padding:8px 5px;text-align:center}.up-node.open{border-color:var(--cy);box-shadow:0 0 10px #00e5ff33}.up-node.max{border-color:var(--gr);box-shadow:0 0 10px #7cff6b33}.up-node.lock{opacity:.45;filter:grayscale(.6)}.up-ic{font-size:24px}.up-nm{font-size:12px;font-weight:700;margin-top:2px}.up-lv{font-size:10px;color:var(--cy);margin:2px 0}.up-ds{font-size:10px;color:var(--dim);min-height:26px;line-height:1.3}.up-node .btn{width:100%;padding:5px 2px;font-size:11px;margin-top:5px}.up-link{width:2px;height:14px;background:var(--ln);margin:0 auto}.up-link.on{background:var(--cy);box-shadow:0 0 6px var(--cy)}
 @media(prefers-reduced-motion:reduce){*,*:before,*:after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}}
 </style>
 </head>
@@ -142,7 +142,7 @@ function load(){try{S=JSON.parse(localStorage.getItem(K))}catch(e){}
 if(!S){S={chips:1500,own:{},deck:[],stage:1,pity:0,pulls:0};const p=CARDS.filter(c=>c.r==0).sort(()=>Math.random()-.5);
 [...p.filter(c=>c.t=="atk"||c.t=="block"||c.t=="multi").slice(0,6),...p.filter(c=>!["atk","block","multi"].includes(c.t)).slice(0,6)].forEach(c=>S.own[c.id]=1);
 S.deck=Object.keys(S.own).map(Number);save()}
-if(!S.lastCollect){S.lastCollect=Date.now();save()}initMissions()}
+if(!S.lastCollect){S.lastCollect=Date.now();save()}initMissions();initUp()}
 const $=id=>document.getElementById(id),sleep=ms=>new Promise(r=>setTimeout(r,ms)),rnd=a=>a[Math.floor(Math.random()*a.length)];
 
 /* ---------- 導覽 ---------- */
@@ -154,10 +154,10 @@ function fx(){const P=B.P,X=B.X,pv=B.pv||{p:P.hp,x:X.hp};
 [["xp",pv.x,X.hp],["pp",pv.p,P.hp]].forEach(([id,a,b])=>{if(a!=b){const el=$(id);el.classList.add(b<a?"hurt":"heal");const f=document.createElement("div");f.className="fl "+(b<a?"fd":"fh");f.textContent=(b<a?"-":"+")+Math.abs(a-b);el.appendChild(f)}});
 B.pv={p:P.hp,x:X.hp};B.deal=false}
 function render(){updChips();
-if(navTab!=tab){navTab=tab;$("nav").innerHTML=[["battle","⚔️ 戰鬥"],["gacha","🎴 抽卡"],["coll","📚 卡庫"],["deck","🃏 牌組"],["mission","📋 任務"],["reactor","⚡ 反應爐"]].map(([k,n])=>`<button class="${tab==k?"on":""}" onclick="go('${k}')">${n}</button>`).join("")}
+if(navTab!=tab){navTab=tab;$("nav").innerHTML=[["battle","⚔️ 戰鬥"],["gacha","🎴 抽卡"],["coll","📚 卡庫"],["deck","🃏 牌組"],["mission","📋 任務"],["up","🧬 強化"],["reactor","⚡ 反應爐"]].map(([k,n])=>`<button class="${tab==k?"on":""}" onclick="go('${k}')">${n}</button>`).join("")}
 if(tab=="battle")B&&!B.over?rBattle():rHome();
 else if(tab=="gacha")rGacha();
-else if(tab=="coll")rColl();else if(tab=="deck")rDeck();else if(tab=="mission")rMission();else rReactor()}
+else if(tab=="coll")rColl();else if(tab=="deck")rDeck();else if(tab=="mission")rMission();else if(tab=="up")rUp();else rReactor()}
 
 /* ---------- 戰鬥 ---------- */
 function rHome(){$("main").innerHTML=`<div class="pn" style="text-align:center"><h3 class="o">SECTOR ${S.stage}</h3><p style="color:var(--dim);margin:4px 0 12px">${S.stage%5==0?"⚠ 首領關卡":"入侵者偵測中"}</p><p>出戰牌組:<b style="color:var(--cy)">${S.deck.length}</b> / 20 張</p><button class="btn" onclick="startBattle()">▶ 進入戰鬥</button></div>
@@ -168,23 +168,23 @@ const st=S.stage,boss=st%5==0,mr=Math.min(4,Math.floor((st+2)/5));
 const pool=CARDS.filter(c=>c.r<=mr&&!["draw","energy"].includes(c.t));
 const nm=rnd(["虛空","機械","暗網","量子","熔核","霜藍"])+rnd(["哨兵","獵手","巨像","AI","無人機","指揮官"]);
 const hp=Math.round((28+st*9)*(boss?Math.max(1.25,1.7-st*.04):1));
-B={P:{hp:80,max:80,bl:0,st:0,po:0,en:3},X:{n:(boss?"👑 BOSS·":"")+nm,hp,max:hp,bl:0,st:0,po:0,en:st>=4?4:3},
+B={P:{hp:upHp(),max:upHp(),bl:0,st:0,po:0,en:upEn(),mx:upEn()},X:{n:(boss?"👑 BOSS·":"")+nm,hp,max:hp,bl:0,st:0,po:0,en:st>=4?4:3},
 draw:[...S.deck].sort(()=>Math.random()-.5).map(i=>CARDS[i]),disc:[],hand:[],pool,log:"戰鬥開始!",over:false};
 missionBattleStart();startTurn()}
 function drawC(n){while(n--){if(!B.draw.length){B.draw=B.disc.sort(()=>Math.random()-.5);B.disc=[]}if(!B.draw.length)break;if(B.hand.length<10)B.hand.push(B.draw.pop())}}
-function startTurn(){const P=B.P;P.bl=0;P.en=3;
+function startTurn(){const P=B.P;P.bl=upv("bl1")*3;P.en=P.mx;P.hp=Math.min(P.max,P.hp+upv("rg1")*2);
 if(P.po){P.hp-=P.po;P.po--;if(P.hp<=0)return end(false)}
-drawC(5-B.hand.length);
+drawC(5+upv("dr1")-B.hand.length);
 const X=B.X,h=[...B.pool].sort(()=>Math.random()-.5).slice(0,4);let en=X.en;B.plan=[];h.forEach(c=>{if(c.cost<=en){en-=c.cost;B.plan.push(c)}});
 busy=false;B.deal=true;render()}
 /* 敵方數值修正:傷害/護盾/治療 x0.85、毒 x0.7、攻擊力加成上限 +3 */
 function ev(c,s){if(s!==B.X)return c.v;const m=c.t==="poison"?.7:["atk","multi","pierce","drain","block","heal"].includes(c.t)?.85:1;return m==1?c.v:Math.max(1,Math.round(c.v*m))}
-function sb(s){return s===B.X?Math.min(s.st,3):s.st}
+function sb(s){return s===B.X?Math.min(s.st,3):s.st+upv("dmg1")}
 function hit(t,n,pierce){const a=pierce?0:Math.min(t.bl,n);t.bl-=a;const d=n-a;t.hp-=d;return d}
 function apply(c,s,t){const b=sb(s),V=ev(c,s);switch(c.t){
-case"atk":hit(t,V+b);break;case"multi":for(let i=0;i<c.h;i++)hit(t,V+b);break;case"pierce":hit(t,V+b,1);break;
+case"atk":hit(t,V+b);break;case"multi":for(let i=0;i<c.h;i++)hit(t,V+b+(s===B.X?0:upv("mu1")));break;case"pierce":hit(t,V+b,1);break;
 case"block":s.bl+=V;break;case"heal":s.hp=Math.min(s.max,s.hp+V);break;case"draw":drawC(c.v);break;case"energy":s.en+=c.v;break;
-case"poison":t.po+=V;break;case"buff":s.st+=c.v;break;case"drain":{const d=hit(t,V+b);s.hp=Math.min(s.max,s.hp+d)}}}
+case"poison":t.po+=V+(s===B.X?0:upv("pois1"));break;case"buff":s.st+=c.v;break;case"drain":{const d=hit(t,V+b);s.hp=Math.min(s.max,s.hp+d)}}}
 function play(i){if(busy||B.over)return;const c=B.hand[i];if(c.cost<=B.P.en&&!c._d){busy=true;const el=document.querySelectorAll(".hand>div")[i];if(el)el.classList.add("used");return setTimeout(()=>{busy=false;c._d=1;play(B.hand.indexOf(c));c._d=0},230)}if(c.cost>B.P.en){fl=i;render();fl=-1;return}
 B.P.en-=c.cost;B.hand.splice(i,1);B.disc.push(c);apply(c,B.P,B.X);missionCardPlayed(c);missionPoisonCheck(B.X);B.log=`你使用了【${c.n}】`;
 if(B.X.hp<=0)return end(true);render()}
@@ -192,7 +192,7 @@ async function endTurn(){if(busy||B.over)return;busy=true;const X=B.X,P=B.P;B.di
 if(X.po){X.hp-=X.po;X.po--;B.log=`敵人受到毒素傷害`;render();await sleep(600);if(X.hp<=0)return end(true)}
 for(const c of B.plan){B.log=`敵方使用【${c.n}】`;apply(c,X,P);render();await sleep(750);if(P.hp<=0)return end(false)}
 startTurn()}
-function end(w){B.over=true;busy=false;if(w)missionBattleWin();let m;if(w){const g=100+S.stage*30;S.chips+=g;S.stage++;m=`<h2 class="o" style="color:var(--gr)">VICTORY</h2><p>獲得 ◈ ${g} 晶片<br>前往 SECTOR ${S.stage}</p>`}else{S.chips+=20;m=`<h2 class="o" style="color:var(--rd)">DEFEATED</h2><p>獲得安慰晶片 ◈ 20<br>去抽卡強化牌組再來吧</p>`}
+function end(w){B.over=true;busy=false;if(w)missionBattleWin();let m;if(w){const g=Math.round((100+S.stage*30)*(1+upv("gold1")*.1)),qg=S.stage%5==0?3:1;S.chips+=g;S.qp=(S.qp||0)+qg;S.stage++;m=`<h2 class="o" style="color:var(--gr)">VICTORY</h2><p>獲得 ◈ ${g} 晶片<br>獲得 ◆ ${qg} 量子點數<br>前往 SECTOR ${S.stage}</p>`}else{S.chips+=20;m=`<h2 class="o" style="color:var(--rd)">DEFEATED</h2><p>獲得安慰晶片 ◈ 20<br>去抽卡強化牌組再來吧</p>`}
 save();updChips();const o=document.createElement("div");o.className="ov";o.style.textAlign="center";o.innerHTML=m+`<button class="btn">確定</button>`;o.querySelector("button").onclick=()=>{o.remove();B=null;render()};document.body.appendChild(o)}
 const intent=()=>{let a=0,b=0,p=0;B.plan.forEach(c=>{const v=ev(c,B.X),k=sb(B.X);if(["atk","pierce","drain"].includes(c.t))a+=v+k;if(c.t=="multi")a+=(v+k)*c.h;if(c.t=="block")b+=v;if(c.t=="poison")p+=v});return`${a?`<span class="tag">⚔️ ${a}</span>`:""}${b?`<span class="tag">🛡️ ${b}</span>`:""}${p?`<span class="tag">☣️ ${p}</span>`:""}${B.plan.length?"":"<span class='tag'>待機</span>"}`};
 function rBattle(){const P=B.P,X=B.X;const bar=(o,c)=>`<div class="bar"><i style="width:${Math.max(0,o.hp/o.max*100)}%;background:${c}"></i></div>`;
@@ -207,7 +207,7 @@ $("main").innerHTML=`<div class="bf">
 <div class="zn">
 <div class="av" style="filter:drop-shadow(0 0 14px var(--cy))">🛰️</div>
 <div class="pn" id="pp"><div style="display:flex;justify-content:space-between"><b>你</b><span class="o" style="font-size:13px">${Math.max(0,P.hp)}/${P.max}</span></div>${bar(P,"var(--gr)")}
-<div class="tg"><span class="tag" style="color:var(--cy)">🔋 能量 ${P.en}/3</span>${P.bl?`<span class="tag">🛡️ ${P.bl}</span>`:""}${P.po?`<span class="tag">☣️ 毒 ${P.po}</span>`:""}${P.st?`<span class="tag">🧬 +${P.st}</span>`:""}<span class="tag" style="color:var(--dim)">牌庫 ${B.draw.length} / 棄牌 ${B.disc.length}</span></div></div>
+<div class="tg"><span class="tag" style="color:var(--cy)">🔋 能量 ${P.en}/${P.mx}</span>${P.bl?`<span class="tag">🛡️ ${P.bl}</span>`:""}${P.po?`<span class="tag">☣️ 毒 ${P.po}</span>`:""}${P.st?`<span class="tag">🧬 +${P.st}</span>`:""}<span class="tag" style="color:var(--dim)">牌庫 ${B.draw.length} / 棄牌 ${B.disc.length}</span></div></div>
 </div>
 <div class="hand ${B.deal?"deal":""}">${B.hand.map((c,i)=>`<div onclick="play(${i})" class="${fl==i?"shake":""}" style="flex:0 0 92px">${cardH(c,c.cost>P.en?"no":"")}</div>`).join("")}</div>
 <button class="btn" style="width:100%;margin-top:8px" onclick="endTurn()" ${busy?"disabled":""}>結束回合 ▶</button></div>`;fx()}
@@ -468,7 +468,7 @@ function claimMission(i){
   }
 
   m.claimed=true;
-  S.chips+=m.reward;
+  S.chips+=m.reward;S.qp=(S.qp||0)+1;
 
   save();
   updChips();
@@ -539,6 +539,7 @@ function renderMissionBody(){
     }).join("")}
   `;
 }
+const UPN=[{id:"hp1",col:0,ic:"❤️",n:"強化外殼",d:"最大生命 +10",max:5,cost:[1,1,2,2,3],req:null},{id:"bl1",col:0,ic:"🛡️",n:"回合護盾",d:"每回合開始 +3 護盾",max:3,cost:[2,2,3],req:"hp1"},{id:"rg1",col:0,ic:"💚",n:"自我修復",d:"每回合開始回復 2 生命",max:3,cost:[2,3,4],req:"bl1"},{id:"dmg1",col:1,ic:"⚔️",n:"武器超頻",d:"基礎傷害 +1",max:5,cost:[1,2,2,3,3],req:null},{id:"mu1",col:1,ic:"✦",n:"連射校準",d:"連擊每發傷害 +1",max:2,cost:[2,3],req:"dmg1"},{id:"pois1",col:1,ic:"☣️",n:"病毒強化",d:"施加毒素 +1 層",max:3,cost:[2,3,4],req:"mu1"},{id:"en1",col:2,ic:"🔋",n:"能源擴充",d:"能量上限 +1",max:2,cost:[3,5],req:null},{id:"dr1",col:2,ic:"📡",n:"資料鏈路",d:"每回合多抽 1 張",max:2,cost:[3,5],req:"en1"},{id:"gold1",col:2,ic:"💰",n:"晶片回收",d:"勝利晶片 +10%",max:3,cost:[2,3,4],req:"dr1"}];const UPB=["❤️ 生存","⚔️ 武器","🔋 戰術"];function upv(id){return S.up&&S.up[id]||0}function upHp(){return 80+upv("hp1")*10}function upEn(){return 3+upv("en1")}function initUp(){if(typeof S.qp!=="number")S.qp=3;if(!S.up)S.up={};save()}function buyUp(id){const n=UPN.find(x=>x.id===id),lv=upv(id);if(!n||lv>=n.max)return;if(n.req&&upv(n.req)<1)return;const c=n.cost[lv];if(S.qp<c)return;S.qp-=c;S.up[id]=lv+1;save();rUp()}function resetUp(){if(!confirm("重置所有強化並退回全部量子點數？"))return;UPN.forEach(n=>{for(let i=0;i<upv(n.id);i++)S.qp+=n.cost[i]});S.up={};save();rUp()}function rUp(){initUp();const y=$("main").scrollTop,col=i=>UPN.filter(n=>n.col===i).map((n,k)=>{const lv=upv(n.id),open=!n.req||upv(n.req)>0,mx=lv>=n.max,c=mx?0:n.cost[lv],ok=open&&!mx&&S.qp>=c,st=mx?"max":open?"open":"lock";return`${k?`<div class="up-link ${open?"on":""}"></div>`:""}<div class="up-node ${st}"><div class="up-ic">${n.ic}</div><div class="up-nm">${n.n}</div><div class="up-lv o">Lv ${lv}/${n.max}</div><div class="up-ds">${n.d}</div><button class="btn" onclick="buyUp('${n.id}')" ${ok?"":"disabled"}>${mx?"已滿級":open?"◆ "+c:"🔒 未解鎖"}</button></div>`}).join("");$("main").innerHTML=`<div class="pn" style="display:flex;justify-content:space-between;align-items:center"><div><h3 class="o" style="margin:0">UPGRADE MATRIX</h3><p style="font-size:12px;color:var(--dim);margin:4px 0 0">消耗量子點數，永久強化角色。</p></div><span class="tag" style="color:var(--cy);font-size:14px">◆ ${S.qp}</span></div><div class="up-core o">🧬 NEXUS 核心</div><div class="up-fork"></div><div class="up-cols">${[0,1,2].map(i=>`<div class="up-col"><div class="up-br">${UPB[i]}</div>${col(i)}</div>`).join("")}</div><div class="pn" style="margin-top:10px;font-size:12px;color:var(--dim);line-height:1.7">取得量子點數：每場勝利 ◆1，首領關 ◆3，每個每日任務收取 ◆1。</div><button class="btn" style="width:100%;margin-bottom:10px" onclick="resetUp()">重置強化</button>`;$("main").scrollTop=y}
 document.addEventListener("pointerdown",e=>{const b=e.target.closest(".btn,nav button,.tabs button");if(!b||b.disabled)return;const r=b.getBoundingClientRect(),z=Math.max(r.width,r.height)*2,d=document.createElement("span");d.className="rp";d.style.cssText=`width:${z}px;height:${z}px;left:${e.clientX-r.left-z/2}px;top:${e.clientY-r.top-z/2}px`;b.appendChild(d);setTimeout(()=>d.remove(),550)});
 load();render();
 </script>
